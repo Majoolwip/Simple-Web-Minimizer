@@ -11,29 +11,6 @@ Javascript text.
 #define START_OF_CHARS 33
 
 /**
-  Removes all hidden characters from the input buffer
-
-  @param char* Buffer to be edited.
-  @return int Length of the text after editing
-  */
-int remove_spaces(char* input)
-{
-  int reading = 0;
-  int writing = 0;
-  while (1) {
-    if (input[reading] >= START_OF_CHARS) {
-      input[writing] = input[reading];
-      writing++;
-    }
-    if (input[reading] == 0) {
-      break;
-    }
-    reading++;
-  }
-  return writing;
-}
-
-/**
   Removes excess hidden characters but leaves one space between words in the
   input button
 
@@ -81,18 +58,29 @@ int remove_between(char* input, const char* begin, const char* end)
 {
   int writing = 0;
   int reading = 0;
+  char quote = 0;
   const int begin_length = strlen(begin);
   const int end_length = strlen(end);
   while (1) {
-    if (strncmp(&input[reading], begin, begin_length) == 0) {
-      while (strncmp(&input[reading], end, end_length) != 0) {
-        reading++;
-        if (input[reading + end_length] == 0) {
-          break;
-        }
+    if (input[reading] == '"' || input[reading] == '\'') {
+      if (quote == input[reading]) {
+        quote = 0;
+      } else {
+        quote = input[reading];
       }
-      reading += end_length;
-      continue;
+    }
+
+    if(!quote) {
+      if (strncmp(&input[reading], begin, begin_length) == 0) {
+        while (strncmp(&input[reading], end, end_length) != 0) {
+          reading++;
+          if (input[reading + end_length] == 0) {
+            break;
+          }
+        }
+        reading += end_length;
+        continue;
+      }
     }
     input[writing] = input[reading];
     writing++;
@@ -116,13 +104,25 @@ int remove_space_around(char* input, char character)
 {
   int writing = 0;
   int reading = 0;
+  char quote = 0;
   while (1) {
-    if (input[reading] == character) {
-      writing--;
-      while(input[writing] < START_OF_CHARS && writing > 0) {
-        writing--;
+
+    if (input[reading] == '"' || input[reading] == '\'') {
+      if (quote == input[reading]) {
+        quote = 0;
+      } else {
+        quote = input[reading];
       }
-      writing++;
+    }
+
+    if (!quote) {
+      if (input[reading] == character) {
+        writing--;
+        while(input[writing] < START_OF_CHARS && writing > 0) {
+          writing--;
+        }
+        writing++;
+      }
     }
 
     input[writing] = input[reading];
@@ -133,12 +133,14 @@ int remove_space_around(char* input, char character)
       break;
     }
 
-    if (input[reading] == character) {
-      reading++;
-      while(input[reading] < START_OF_CHARS && input[reading] != 0) {
+    if (!quote) {
+      if (input[reading] == character) {
         reading++;
+        while(input[reading] < START_OF_CHARS && input[reading] != 0) {
+          reading++;
+        }
+        reading--;
       }
-      reading--;
     }
     reading++;
   }
@@ -170,7 +172,7 @@ int minimize_js(char* input)
 {
   remove_between(input, "//", "\n");
   remove_between(input, "/*", "*/");
-  return remove_spaces(input);
+  return remove_excess_spaces(input);
 }
 
 /**

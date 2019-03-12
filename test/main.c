@@ -86,6 +86,16 @@ int main()
   minimize_html(buffer);
   test("Test 11: ", buffer, "<head><head><head>");
 
+  // Test 12: Quoated Strings
+  (void)sprintf(buffer, "<head id=\"<!-- Im a comment -->\">");
+  minimize_html(buffer);
+  test("Test 12: ", buffer, "<head id=\"<!-- Im a comment -->\">");
+
+  // Test 13: Nested Quotes
+  (void)sprintf(buffer, "<head id=\"\'test\'\">");
+  minimize_html(buffer);
+  test("Test 13: ", buffer, "<head id=\"\'test\'\">");
+
   printf("Testing CSS\n");
 
   // Test 1: Basic input
