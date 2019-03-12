@@ -59,14 +59,23 @@ int remove_between(char* input, const char* begin, const char* end)
   int writing = 0;
   int reading = 0;
   char quote = 0;
+  int tag = 0;
   const int begin_length = strlen(begin);
   const int end_length = strlen(end);
   while (1) {
-    if (input[reading] == '"' || input[reading] == '\'') {
-      if (quote == input[reading]) {
-        quote = 0;
-      } else {
-        quote = input[reading];
+    if (input[reading] == '<') {
+      tag = 1;
+    } else if (tag == 1 && input[reading] == '>') {
+      tag = 0;
+    }
+
+    if (tag) {
+      if (input[reading] == '"' || input[reading] == '\'') {
+        if (quote == input[reading]) {
+          quote = 0;
+        } else {
+          quote = input[reading];
+        }
       }
     }
 
@@ -105,13 +114,21 @@ int remove_space_around(char* input, char character)
   int writing = 0;
   int reading = 0;
   char quote = 0;
+  int tag = 0;
   while (1) {
+    if (input[reading] == '<') {
+      tag = 1;
+    } else if (tag == 1 && input[reading] == '>') {
+      tag = 0;
+    }
 
-    if (input[reading] == '"' || input[reading] == '\'') {
-      if (quote == input[reading]) {
-        quote = 0;
-      } else {
-        quote = input[reading];
+    if (tag) {
+      if (input[reading] == '"' || input[reading] == '\'') {
+        if (quote == input[reading]) {
+          quote = 0;
+        } else {
+          quote = input[reading];
+        }
       }
     }
 
