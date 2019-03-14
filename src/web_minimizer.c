@@ -34,6 +34,9 @@ int remove_excess_spaces(char* input)
     }
 
     if (input[reading] < START_OF_CHARS && flag == 1) {
+      if (input[reading] != 0) {
+        input[writing - 1] = ' ';
+      }
       flag = 0;
     }
 
@@ -63,106 +66,26 @@ int remove_between(char* input, const char* begin, const char* end)
   const int begin_length = strlen(begin);
   const int end_length = strlen(end);
   while (1) {
-    if (input[reading] == '<') {
-      tag = 1;
-    } else if (tag == 1 && input[reading] == '>') {
-      tag = 0;
-    }
-
-    if (tag) {
-      if (input[reading] == '"' || input[reading] == '\'') {
-        if (quote == input[reading]) {
-          quote = 0;
-        } else {
-          quote = input[reading];
-        }
-      }
-    }
-
-    if(!quote) {
-      if (strncmp(&input[reading], begin, begin_length) == 0) {
-        while (strncmp(&input[reading], end, end_length) != 0) {
-          reading++;
-          if (input[reading + end_length] == 0) {
-            break;
-          }
-        }
-        reading += end_length;
-        continue;
-      }
-    }
-    input[writing] = input[reading];
-    writing++;
-    if (input[reading] == 0) {
-      break;
-    }
-    reading++;
-  }
-  return writing;
-}
-
-/**
-  Removes all hidden characters from around a given character from the input
-  buffer
-
-  @param char* Buffer to be edited.
-  @param char Character to be found
-  @return int Length of the text after editing
-  */
-int remove_space_around(char* input, char character)
-{
-  int writing = 0;
-  int reading = 0;
-  char quote = 0;
-  int tag = 0;
-  while (1) {
-    if (input[reading] == '<') {
-      tag = 1;
-    } else if (tag == 1 && input[reading] == '>') {
-      tag = 0;
-    }
-
-    if (tag) {
-      if (input[reading] == '"' || input[reading] == '\'') {
-        if (quote == input[reading]) {
-          quote = 0;
-        } else {
-          quote = input[reading];
-        }
-      }
-    }
-
-    if (!quote) {
-      if (input[reading] == character) {
-        writing--;
-        while(input[writing] < START_OF_CHARS && writing > 0) {
-          writing--;
-        }
-        writing++;
-      }
-    }
-
-    input[writing] = input[reading];
-    writing++;
-
-
-    if (input[reading] == 0) {
-      break;
-    }
-
-    if (!quote) {
-      if (input[reading] == character) {
+    if (strncmp(&input[reading], begin, begin_length) == 0) {
+      while (strncmp(&input[reading], end, end_length) != 0) {
         reading++;
-        while(input[reading] < START_OF_CHARS && input[reading] != 0) {
-          reading++;
+        if (input[reading + end_length] == 0) {
+          break;
         }
-        reading--;
       }
+      reading += end_length;
+      continue;
+    }
+    input[writing] = input[reading];
+    writing++;
+    if (input[reading] == 0) {
+      break;
     }
     reading++;
   }
   return writing;
 }
+
 
 /**
   Minimizes a given input of HTML, assumes proper syntax is used.
@@ -173,10 +96,7 @@ int remove_space_around(char* input, char character)
 int minimize_html(char* input)
 {
   remove_between(input, "<!--", "-->");
-  remove_excess_spaces(input);
-  remove_space_around(input, '<');
-  remove_space_around(input, '>');
-  return remove_space_around(input, '=');
+  return remove_excess_spaces(input);
 }
 
 /**
@@ -201,9 +121,5 @@ int minimize_js(char* input)
 int minimize_css(char* input)
 {
   remove_between(input, "/*", "*/");
-  remove_excess_spaces(input);
-  remove_space_around(input, '{');
-  remove_space_around(input, '}');
-  remove_space_around(input, ':');
-  return remove_space_around(input, ';');
+  return remove_excess_spaces(input);
 }
